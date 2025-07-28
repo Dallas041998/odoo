@@ -33,6 +33,7 @@ Features:
         'web.assets_backend': [
             'todo_list/static/src/js/todo_list_client.js',
             'todo_list/static/src/css/todo_list.css',
+            'todo_list/static/src/xml/todo_list_client.xml',
         ],
     },
     'installable': True,

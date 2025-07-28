@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="todo_list.TodoListClient">
+        <div class="todo-list-client">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3>Todo List (Local Storage)</h3>
+                            <div>
+                                <button class="btn btn-primary me-2" t-on-click="() => this.state.showForm = !this.state.showForm">
+                                    Add Task
+                                </button>
+                                <button class="btn btn-success me-2" t-on-click="syncWithBackend">
+                                    Sync to Backend
+                                </button>
+                                <button class="btn btn-info" t-on-click="loadFromBackend">
+                                    Load from Backend
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Task Form -->
+                            <div t-if="state.showForm" class="card mb-3">
+                                <div class="card-header">
+                                    <h5 t-if="state.editingTask">Edit Task</h5>
+                                    <h5 t-else="">Add New Task</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Title *</label>
+                                                <input type="text" class="form-control" 
+                                                       t-model="state.newTask.title" 
+                                                       placeholder="Enter task title"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Due Date</label>
+                                                <input type="date" class="form-control" 
+                                                       t-model="state.newTask.due_date"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" rows="3" 
+                                                  t-model="state.newTask.description" 
+                                                  placeholder="Enter task description"/>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-primary" 
+                                                t-on-click="state.editingTask ? updateTask : addTask">
+                                            <span t-if="state.editingTask">Update Task</span>
+                                            <span t-else="">Add Task</span>
+                                        </button>
+                                        <button class="btn btn-secondary" t-on-click="resetForm">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Task Statistics -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body text-center">
+                                            <h4 t-esc="state.tasks.length"/>
+                                            <small>Total Tasks</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-warning text-white">
+                                        <div class="card-body text-center">
+                                            <h4 t-esc="pendingTasks.length"/>
+                                            <small>Pending Tasks</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h4 t-esc="completedTasks.length"/>
+                                            <small>Completed Tasks</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tasks List -->
+                            <div class="row">
+                                <!-- Pending Tasks -->
+                                <div class="col-md-6">
+                                    <h5>Pending Tasks</h5>
+                                    <div t-if="pendingTasks.length === 0" class="alert alert-info">
+                                        No pending tasks
+                                    </div>
+                                    <div t-else="" class="todo-tasks">
+                                        <div t-foreach="pendingTasks" t-as="task" t-key="task.id" 
+                                             class="card mb-2" 
+                                             t-att-class="isOverdue(task) ? 'border-danger' : ''">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between">
+                                                    <h6 t-esc="task.title" t-att-class="isOverdue(task) ? 'text-danger' : ''"/>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-success" 
+                                                                t-on-click="() => this.toggleTaskStatus(task)"
+                                                                title="Mark as completed">
+                                                            ✓
+                                                        </button>
+                                                        <button class="btn btn-primary" 
+                                                                t-on-click="() => this.editTask(task)"
+                                                                title="Edit task">
+                                                            ✎
+                                                        </button>
+                                                        <button class="btn btn-danger" 
+                                                                t-on-click="() => this.deleteTask(task)"
+                                                                title="Delete task">
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p t-if="task.description" class="text-muted small mb-1" t-esc="task.description"/>
+                                                <small t-if="task.due_date" 
+                                                       t-att-class="isOverdue(task) ? 'text-danger' : 'text-muted'">
+                                                    Due: <span t-esc="formatDate(task.due_date)"/>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Completed Tasks -->
+                                <div class="col-md-6">
+                                    <h5>Completed Tasks</h5>
+                                    <div t-if="completedTasks.length === 0" class="alert alert-info">
+                                        No completed tasks
+                                    </div>
+                                    <div t-else="" class="todo-tasks">
+                                        <div t-foreach="completedTasks" t-as="task" t-key="task.id" 
+                                             class="card mb-2 bg-light">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between">
+                                                    <h6 class="text-decoration-line-through text-muted" t-esc="task.title"/>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-warning" 
+                                                                t-on-click="() => this.toggleTaskStatus(task)"
+                                                                title="Mark as pending">
+                                                            ↻
+                                                        </button>
+                                                        <button class="btn btn-danger" 
+                                                                t-on-click="() => this.deleteTask(task)"
+                                                                title="Delete task">
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p t-if="task.description" class="text-muted small mb-1" t-esc="task.description"/>
+                                                <small t-if="task.due_date" class="text-muted">
+                                                    Due: <span t-esc="formatDate(task.due_date)"/>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
