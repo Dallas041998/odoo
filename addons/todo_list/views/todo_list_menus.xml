@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Main menu item -->
+        <menuitem id="menu_todo_list_root" 
+                  name="Todo List" 
+                  sequence="100"
+                  web_icon="todo_list,static/description/icon.png"/>
+        
+        <!-- Sub-menu for backend tasks -->
+        <menuitem id="menu_todo_tasks" 
+                  name="Backend Tasks" 
+                  parent="menu_todo_list_root" 
+                  action="action_todo_task" 
+                  sequence="10"/>
+        
+        <!-- Sub-menu for local storage interface -->
+        <menuitem id="menu_todo_list_client" 
+                  name="Local Storage Interface" 
+                  parent="menu_todo_list_root" 
+                  action="action_todo_list_client" 
+                  sequence="20"/>
+        
+    </data>
+</odoo>
