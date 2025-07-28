@@ -4534,7 +4534,6 @@ class TestInvisibleField(TransactionCaseWithUserDemo):
             'documents_project',
             'industry_fsm_report',
             'project_enterprise',
-            'project_todo',
             'purchase_product_matrix',
             'quality_control',
             'mrp_workorder_expiry',

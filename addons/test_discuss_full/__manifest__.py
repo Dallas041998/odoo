@@ -19,7 +19,6 @@
         'im_livechat',
         'mail',
         'mail_bot',
-        'project_todo',
         'website_livechat',
         'website_slides',
     ],

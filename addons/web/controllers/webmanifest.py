@@ -14,7 +14,7 @@ from odoo.tools import file_open, file_path, image_process
 class WebManifest(http.Controller):
 
     def _get_shortcuts(self):
-        module_names = ['mail', 'crm', 'project', 'project_todo']
+        module_names = ['mail', 'crm', 'project']
         try:
             module_ids = request.env['ir.module.module'].search([('state', '=', 'installed'), ('name', 'in', module_names)]) \
                                                         .sorted(key=lambda r: module_names.index(r["name"]))
