@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import logging
+import json
 from datetime import datetime
 from markupsafe import Markup
 from itertools import groupby
@@ -336,6 +337,12 @@ class PosOrder(models.Model):
     order_edit_tracking = fields.Boolean(related="config_id.order_edit_tracking", readonly=True)
     available_payment_method_ids = fields.Many2many('pos.payment.method', related='config_id.payment_method_ids', string='Available Payment Methods', readonly=True, store=False)
 
+    def get_preparation_change(self):
+        self.ensure_one()
+        return {
+            'last_order_preparation_change': self.last_order_preparation_change,
+        }
+
     def _search_tracking_number(self, operator, value):
         #search is made over the pos_reference field
         #The pos_reference field is like 'Order 00001-001-0001'
@@ -481,8 +488,6 @@ class PosOrder(models.Model):
 
     @api.model
     def _complete_values_from_session(self, session, values):
-        if values.get('state') and values['state'] == 'paid' and not values.get('name'):
-            values['name'] = self._compute_order_name(session)
         values.setdefault('pricelist_id', session.config_id.pricelist_id.id)
         values.setdefault('fiscal_position_id', session.config_id.default_fiscal_position_id.id)
         values.setdefault('company_id', session.config_id.company_id.id)
@@ -652,6 +657,8 @@ class PosOrder(models.Model):
         bank_partner_id = False
         if self.amount_total <= 0 and self.partner_id.bank_ids:
             bank_partner_id = self.partner_id.bank_ids[0].id
+        elif self.amount_total >= 0 and self.payment_ids and self.payment_ids[0].payment_method_id.journal_id.bank_account_id:
+            bank_partner_id = self.payment_ids[0].payment_method_id.journal_id.bank_account_id.id
         elif self.amount_total >= 0 and self.company_id.partner_id.bank_ids:
             bank_partner_id = self.company_id.partner_id.bank_ids[0].id
         return bank_partner_id
@@ -765,6 +772,24 @@ class PosOrder(models.Model):
             vals.update({'narration': self.floating_order_name})
         return vals
 
+    def _prepare_product_aml_dict(self, base_line_vals, update_base_line_vals, rate, sign):
+        amount_currency = update_base_line_vals['amount_currency']
+        balance = self.company_id.currency_id.round(amount_currency * rate)
+        order_line = base_line_vals['record']
+        return {
+            'name': order_line.full_product_name,
+            'product_id': order_line.product_id.id,
+            'quantity': order_line.qty * sign,
+            'account_id': base_line_vals['account_id'].id,
+            'partner_id': base_line_vals['partner_id'].id,
+            'currency_id': base_line_vals['currency_id'].id,
+            'tax_ids': [(6, 0, base_line_vals['tax_ids'].ids)],
+            'tax_tag_ids': update_base_line_vals['tax_tag_ids'],
+            'amount_currency': amount_currency,
+            'balance': balance,
+            'tax_tag_invert': not base_line_vals['is_refund'],
+        }
+
     def _prepare_aml_values_list_per_nature(self):
         self.ensure_one()
         AccountTax = self.env['account.tax']
@@ -796,24 +821,10 @@ class PosOrder(models.Model):
 
         # Create the aml values for order lines.
         for base_line_vals, update_base_line_vals in tax_results['base_lines_to_update']:
-            order_line = base_line_vals['record']
-            amount_currency = update_base_line_vals['amount_currency']
-            balance = company_currency.round(amount_currency * rate)
-            aml_vals_list_per_nature['product'].append({
-                'name': order_line.full_product_name,
-                'product_id': order_line.product_id.id,
-                'quantity': order_line.qty * sign,
-                'account_id': base_line_vals['account_id'].id,
-                'partner_id': base_line_vals['partner_id'].id,
-                'currency_id': base_line_vals['currency_id'].id,
-                'tax_ids': [(6, 0, base_line_vals['tax_ids'].ids)],
-                'tax_tag_ids': update_base_line_vals['tax_tag_ids'],
-                'amount_currency': amount_currency,
-                'balance': balance,
-                'tax_tag_invert': not base_line_vals['is_refund'],
-            })
-            total_amount_currency += amount_currency
-            total_balance += balance
+            product_dict = self._prepare_product_aml_dict(base_line_vals, update_base_line_vals, rate, sign)
+            aml_vals_list_per_nature['product'].append(product_dict)
+            total_amount_currency += product_dict['amount_currency']
+            total_balance += product_dict['balance']
 
         # Cash rounding.
         cash_rounding = self.config_id.rounding_method
@@ -1016,6 +1027,28 @@ class PosOrder(models.Model):
                 (invoice_receivables | payment_receivables).sudo().with_company(self.company_id).reconcile()
         return payment_moves
 
+    def _ensure_to_keep_last_preparation_change(self, vals):
+        for record in self:
+            if record.last_order_preparation_change:
+                change = json.loads(record.last_order_preparation_change)
+                if not change.get('metadata'):
+                    return
+
+                local_change = json.loads(vals.get('last_order_preparation_change', '{}'))
+                if not local_change.get('metadata'):
+                    vals['last_order_preparation_change'] = record.last_order_preparation_change
+                    return
+
+                server_date = fields.Datetime.from_string(change['metadata'].get('serverDate'))
+                local_date = fields.Datetime.from_string(local_change['metadata'].get('serverDate'))
+
+                if server_date > local_date:
+                    _logger.warning("Preparation changes were outdated, probably linked to a synching issue.")
+                    vals['last_order_preparation_change'] = record.last_order_preparation_change
+                else:
+                    local_change['metadata']['serverDate'] = fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    vals['last_order_preparation_change'] = json.dumps(local_change)
+
     @staticmethod
     def _get_order_log_representation(order):
         return dict((k, order.get(k)) for k in ("name", "uuid"))
@@ -1046,6 +1079,7 @@ class PosOrder(models.Model):
 
             existing_order = self._get_open_order(order)
             if existing_order and existing_order.state == 'draft':
+                existing_order._ensure_to_keep_last_preparation_change(order)
                 order_ids.append(self._process_order(order, existing_order))
                 _logger.info("PoS synchronisation #%d order %s updated pos.order #%d", sync_token, order_log_name, order_ids[-1])
             elif not existing_order:
@@ -1054,6 +1088,7 @@ class PosOrder(models.Model):
             else:
                 # In theory, this situation is unintended
                 # In practice it can happen when "Tip later" option is used
+                existing_order._ensure_to_keep_last_preparation_change(order)
                 order_ids.append(existing_order.id)
                 _logger.info("PoS synchronisation #%d order %s sync ignored for existing PoS order %s (state: %s)", sync_token, order_log_name, existing_order, existing_order.state)
 
@@ -1430,18 +1465,33 @@ class PosOrderLine(models.Model):
             raise UserError(_('No PoS configuration found'))
 
         src_loc = pos_config.picking_type_id.default_location_src_id
-        src_loc_quants = self.sudo().env['stock.quant'].search([
+
+        domain = [
             '|',
             ('company_id', '=', False),
             ('company_id', '=', company_id),
             ('product_id', '=', product_id),
             ('location_id', 'in', src_loc.child_internal_location_ids.ids),
-        ])
-        available_lots = src_loc_quants.\
-            filtered(lambda q: float_compare(q.quantity, 0, precision_rounding=q.product_id.uom_id.rounding) > 0).\
-            mapped('lot_id')
+            ('quantity', '>', 0),
+            ('lot_id', '!=', False),
+        ]
 
-        return available_lots.read(['id', 'name', 'product_qty'])
+        groups = self.sudo().env['stock.quant']._read_group(
+            domain=domain,
+            groupby=['lot_id'],
+            aggregates=['quantity:sum']
+        )
+
+        result = []
+        for lot_recordset, total_quantity in groups:
+            if lot_recordset:
+                result.append({
+                    'id': lot_recordset.id,
+                    'name': lot_recordset.name,
+                    'product_qty': total_quantity
+                })
+
+        return result
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_order_state(self):

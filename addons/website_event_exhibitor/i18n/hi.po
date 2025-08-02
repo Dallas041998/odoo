@@ -409,7 +409,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitors_topbar
 msgid "Filters"
-msgstr ""
+msgstr "फ़िल्टर"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__message_follower_ids
@@ -604,7 +604,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.exhibitor_card
 msgid "Live"
-msgstr ""
+msgstr "लाइव"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__image_512
@@ -719,7 +719,7 @@ msgstr "ऐसे मैसेज की संख्या जिनमें �
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_search
 msgid "Online"
-msgstr ""
+msgstr "ऑनलािन"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields.selection,name:website_event_exhibitor.selection__event_sponsor__exhibitor_type__online
@@ -777,7 +777,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__partner_phone
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_form
 msgid "Phone"
-msgstr ""
+msgstr "फ़ोन"
 
 #. module: website_event_exhibitor
 #: model_terms:ir.ui.view,arch_db:website_event_exhibitor.event_sponsor_view_kanban
@@ -1039,7 +1039,7 @@ msgstr ""
 #. module: website_event_exhibitor
 #: model:ir.model.fields,help:website_event_exhibitor.field_event_sponsor__website_message_ids
 msgid "Website communication history"
-msgstr ""
+msgstr "वेबसाइट कम्यूनिकेशन हिस्ट्री"
 
 #. module: website_event_exhibitor
 #: model:ir.model.fields,field_description:website_event_exhibitor.field_event_sponsor__is_in_opening_hours

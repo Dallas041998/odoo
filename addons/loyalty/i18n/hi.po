@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-30 18:37+0000\n"
+"POT-Creation-Date: 2025-07-18 18:39+0000\n"
 "PO-Revision-Date: 2024-09-25 09:41+0000\n"
 "Last-Translator: Ujjawal Pathak, 2025\n"
 "Language-Team: Hindi (https://app.transifex.com/odoo/teams/41243/hi/)\n"
@@ -460,7 +460,7 @@ msgstr "अटैचमेंट काउंट"
 #: model:ir.model.fields.selection,name:loyalty.selection__loyalty_program__trigger__auto
 #: model:ir.model.fields.selection,name:loyalty.selection__loyalty_rule__mode__auto
 msgid "Automatic"
-msgstr ""
+msgstr "ऑटोमैटिक"
 
 #. module: loyalty
 #. odoo-python
@@ -525,7 +525,7 @@ msgstr "रद्द"
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card_update_balance__card_id
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_history__card_id
 msgid "Card"
-msgstr ""
+msgstr "कार्ड"
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.gift_card_report
@@ -813,7 +813,7 @@ msgstr ""
 #. module: loyalty
 #: model:ir.model.fields.selection,name:loyalty.selection__loyalty_program__program_type__promo_code
 msgid "Discount Code"
-msgstr ""
+msgstr "डिस्काउंट कोड"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_reward__discount_line_product_id
@@ -910,12 +910,12 @@ msgstr ""
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_mail__mail_template_id
 msgid "Email Template"
-msgstr ""
+msgstr "ईमेल टेंप्लेट"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__mail_template_id
 msgid "Email template"
-msgstr ""
+msgstr "ईमेल टेंप्लेट"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__date_to
@@ -1069,7 +1069,7 @@ msgstr ""
 #: model:loyalty.reward,description:loyalty.gift_card_program_reward
 #: model:product.template,name:loyalty.gift_card_product_50_product_template
 msgid "Gift Card"
-msgstr ""
+msgstr "गिफ्ट कार्ड"
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
@@ -1239,7 +1239,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__coupon_count_display
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_tree
 msgid "Items"
-msgstr ""
+msgstr "आइटम "
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_report
@@ -1453,7 +1453,7 @@ msgstr "ऐसे मैसेज की संख्या जिनमें �
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_report
 msgid "Odoo"
-msgstr ""
+msgstr "Odoo"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_history__order_id
@@ -1483,7 +1483,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_mail__points
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_form
 msgid "Points"
-msgstr ""
+msgstr "पॉइंट"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_card__points_display
@@ -1515,6 +1515,7 @@ msgid "Portal Visible"
 msgstr ""
 
 #. module: loyalty
+#: model:ir.model,name:loyalty.model_product_pricelist
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_program__pricelist_ids
 msgid "Pricelist"
 msgstr "मूल्य सूची"
@@ -1854,6 +1855,14 @@ msgstr ""
 
 #. module: loyalty
 #. odoo-python
+#: code:addons/loyalty/models/product_pricelist.py:0
+msgid ""
+"This pricelist may not be archived. It is being used for active promotion "
+"programs: %s"
+msgstr ""
+
+#. module: loyalty
+#. odoo-python
 #: code:addons/loyalty/models/product_product.py:0
 msgid ""
 "This product may not be archived. It is being used for an active promotion "
@@ -1924,7 +1933,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_history__used
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_card_history_template
 msgid "Used"
-msgstr ""
+msgstr "इस्तेमाल किया गया"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_reward__user_has_debug
@@ -1951,7 +1960,7 @@ msgstr "वेबसाइट मैसेज"
 #. module: loyalty
 #: model:ir.model.fields,help:loyalty.field_loyalty_card__website_message_ids
 msgid "Website communication history"
-msgstr ""
+msgstr "वेबसाइट कम्यूनिकेशन हिस्ट्री"
 
 #. module: loyalty
 #: model:ir.model.fields,field_description:loyalty.field_loyalty_mail__trigger
@@ -2041,7 +2050,7 @@ msgstr ""
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_kanban
 msgid "all"
-msgstr ""
+msgstr "सभी"
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_reward_view_kanban
@@ -2163,7 +2172,7 @@ msgstr ""
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form
 msgid "to"
-msgstr ""
+msgstr " "
 
 #. module: loyalty
 #: model_terms:ir.ui.view,arch_db:loyalty.loyalty_program_view_form

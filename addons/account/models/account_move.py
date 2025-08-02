@@ -802,10 +802,10 @@ class AccountMove(models.Model):
             move.payment_reference = move._get_invoice_computed_reference()
         self._inverse_payment_reference()
 
-    @api.depends('invoice_date', 'company_id')
+    @api.depends('invoice_date', 'company_id', 'move_type')
     def _compute_date(self):
         for move in self:
-            if not move.invoice_date or not move.is_invoice():
+            if not move.invoice_date or not move.is_invoice(include_receipts=True):
                 if not move.date:
                     move.date = fields.Date.context_today(self)
                 continue
@@ -1412,6 +1412,7 @@ class AccountMove(models.Model):
                         'account_payment_id': counterpart_line.payment_id.id,
                         'payment_method_name': counterpart_line.payment_id.payment_method_line_id.name,
                         'move_id': counterpart_line.move_id.id,
+                        'is_refund': counterpart_line.move_id.move_type in ['in_refund', 'out_refund'],
                         'ref': reconciliation_ref,
                         # these are necessary for the views to change depending on the values
                         'is_exchange': reconciled_partial['is_exchange'],
@@ -1636,7 +1637,7 @@ class AccountMove(models.Model):
         - whether or not there is an early pay discount in this invoice that should be displayed
         '''
         for invoice in self:
-            if invoice.move_type in ('out_invoice', 'out_receipt', 'in_invoice', 'in_receipt') and invoice.payment_state in ('not_paid', 'partial'):
+            if invoice.move_type in self._early_payment_discount_move_types() and invoice.payment_state in ('not_paid', 'partial'):
                 payment_term_lines = invoice.line_ids.filtered(lambda l: l.display_type == 'payment_term')
                 invoice.show_discount_details = invoice.invoice_payment_term_id.early_discount
                 invoice.show_payment_term_details = len(payment_term_lines) > 1 or invoice.show_discount_details
@@ -2543,14 +2544,17 @@ class AccountMove(models.Model):
         self.ensure_one()
         payment_terms = self.line_ids.filtered(lambda line: line.display_type == 'payment_term')
         return self.currency_id == currency \
-            and self.move_type in ('out_invoice', 'out_receipt', 'in_invoice', 'in_receipt') \
+            and self.move_type in self._early_payment_discount_move_types() \
             and self.invoice_payment_term_id.early_discount \
             and (
                 not reference_date
                 or not self.invoice_date
-                or reference_date <= self.invoice_payment_term_id._get_last_discount_date(self.invoice_date)
+                or reference_date <= fields.first(payment_terms).discount_date
             ) \
             and not (payment_terms.sudo().matched_debit_ids + payment_terms.sudo().matched_credit_ids)
+
+    def _early_payment_discount_move_types(self):
+        return ('out_invoice', 'out_receipt', 'in_invoice', 'in_receipt')
 
     # -------------------------------------------------------------------------
     # BUSINESS MODELS SYNCHRONIZATION
@@ -4249,7 +4253,7 @@ class AccountMove(models.Model):
 
         base_amls = self.line_ids.filtered(lambda x: x.display_type == 'product')
         base_lines = [self._prepare_product_base_line_for_taxes_computation(x) for x in base_amls]
-        tax_amls = self.line_ids.filtered(lambda x: x.display_type == 'tax')
+        tax_amls = self.line_ids.filtered('tax_repartition_line_id')
         tax_lines = [self._prepare_tax_line_for_taxes_computation(x) for x in tax_amls]
         AccountTax._add_tax_details_in_base_lines(base_lines, self.company_id)
         AccountTax._round_base_lines_tax_details(base_lines, self.company_id, tax_lines=tax_lines)
@@ -4267,7 +4271,7 @@ class AccountMove(models.Model):
 
         base_amls = self.line_ids.filtered(lambda x: x.display_type == 'product' and (not filter_invl_to_apply or filter_invl_to_apply(x)))
         base_lines = [self._prepare_product_base_line_for_taxes_computation(x) for x in base_amls]
-        tax_amls = self.line_ids.filtered(lambda x: x.display_type == 'tax')
+        tax_amls = self.line_ids.filtered('tax_repartition_line_id')
         tax_lines = self._prepare_tax_lines_for_taxes_computation(tax_amls, round_from_tax_lines)
         AccountTax._add_tax_details_in_base_lines(base_lines, self.company_id)
         if postfix_function:
@@ -4364,7 +4368,7 @@ class AccountMove(models.Model):
 
         company = self.company_id
         payment_term_line = self.line_ids.filtered(lambda x: x.display_type == 'payment_term')
-        tax_lines = self.line_ids.filtered(lambda x: x.display_type == 'tax')
+        tax_lines = self.line_ids.filtered('tax_repartition_line_id')
         invoice_lines = self.line_ids.filtered(lambda x: x.display_type == 'product')
         payment_term = self.invoice_payment_term_id
         early_pay_discount_computation = payment_term.early_pay_discount_computation
@@ -5424,6 +5428,7 @@ class AccountMove(models.Model):
 
         if self.move_type != 'entry':
             local_msg_vals = dict(msg_vals or {})
+            partner_ids = local_msg_vals.get('partner_ids', []) if 'partner_ids' in local_msg_vals else message.partner_ids.ids
             self._portal_ensure_token()
             access_link = self._notify_get_action_link('view', **local_msg_vals, access_token=self.access_token)
 
@@ -5432,7 +5437,7 @@ class AccountMove(models.Model):
             button_access = {'url': access_link} if access_link else {}
             recipient_group = (
                 'additional_intended_recipient',
-                lambda pdata: pdata['id'] in local_msg_vals.get('partner_ids', []) and pdata['id'] != self.partner_id.id and pdata['type'] != 'user',
+                lambda pdata: pdata['id'] in partner_ids and pdata['id'] != self.partner_id.id and pdata['type'] != 'user',
                 {
                     'has_button_access': True,
                     'button_access': button_access,
@@ -5506,6 +5511,10 @@ class AccountMove(models.Model):
             [('sending_data', '!=', False)],
             limit=limit,
         )
+        total_to_process = self.env['account.move'].search_count(
+            [('sending_data', '!=', False)],
+        )
+
         need_retrigger = len(to_process) > job_count
         if not to_process:
             return
@@ -5522,6 +5531,8 @@ class AccountMove(models.Model):
             to_process,
             from_cron=True,
         )
+        self.env['ir.cron']._notify_progress(done=len(to_process),
+                                             remaining=total_to_process - len(to_process))
 
         for partner_id, partner_moves in moves_by_partner.items():
             partner = self.env['res.partner'].browse(partner_id)
@@ -5841,7 +5852,7 @@ class AccountMove(models.Model):
 
     def _get_invoice_legal_documents(self, filetype, allow_fallback=False):
         """ Retrieve the invoice legal document of type filetype.
-        :param filetype: the type of legal document to retrieve. Example: 'pdf', 'all'.
+        :param filetype: the type of legal document to retrieve. Example: 'pdf'.
         :param bool allow_fallback: if True, returns a Proforma if the PDF invoice doesn't exist.
         :return dict: the invoice PDF data such as
         {'filename': 'INV_2024_0001.pdf', 'filetype': 'pdf', 'content':...}
@@ -5857,8 +5868,6 @@ class AccountMove(models.Model):
                 }
             elif allow_fallback:
                 return self._get_invoice_pdf_proforma()
-        elif filetype == 'all':
-            return self._get_invoice_legal_documents_all(allow_fallback=allow_fallback)
 
     def _get_invoice_legal_documents_all(self, allow_fallback=False):
         """ Retrieve the invoice legal attachments: PDF, XML, ...
@@ -6181,7 +6190,7 @@ class AccountMove(models.Model):
             force_email_company=force_email_company, force_email_lang=force_email_lang
         )
         record = render_context['record']
-        subtitles = [f"{record.name} - {record.partner_id.name}" if record.partner_id else record.name]
+        subtitles = [f"{record.name} - {record.partner_id.name}" if record.partner_id.name else record.name]
         if self.is_invoice(include_receipts=True):
             # Only show the amount in emails for non-miscellaneous moves. It might confuse recipients otherwise.
             if self.invoice_date_due and self.payment_state not in ('in_payment', 'paid'):

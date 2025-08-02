@@ -110,7 +110,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:rating.field_rating_rating__res_id
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_form
 msgid "Document"
-msgstr ""
+msgstr "दस्तावेज़"
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__res_model
@@ -186,7 +186,7 @@ msgstr "अगर बॉक्स पर टिक है, तो कुछ म�
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__rating_image
 msgid "Image"
-msgstr ""
+msgstr "इमेज"
 
 #. module: rating
 #: model:ir.model.fields,field_description:rating.field_rating_rating__rating_image_url
@@ -575,4 +575,4 @@ msgstr ""
 #. module: rating
 #: model_terms:ir.ui.view,arch_db:rating.rating_rating_view_kanban
 msgid "on"
-msgstr ""
+msgstr " "

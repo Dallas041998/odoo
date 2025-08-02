@@ -179,6 +179,10 @@ registry.category("web_tour.tours").add("FiscalPositionNoTaxRefund", {
             ProductScreen.isShown(),
             { ...ProductScreen.back(), isActive: ["mobile"] },
             ProductScreen.totalAmountIs("100.00"),
+            ProductScreen.clickPayButton(),
+            PaymentScreen.clickPaymentMethod("Bank"),
+            PaymentScreen.clickValidate(),
+            ReceiptScreen.isShown(),
         ].flat(),
 });
 
@@ -276,6 +280,26 @@ registry.category("web_tour.tours").add("LotTour", {
             ProductScreen.clickDisplayedProduct("Product B"),
             inLeftSide({
                 trigger: ".info-list:contains('Lot Number 1001')",
+            }),
+        ].flat(),
+});
+
+registry.category("web_tour.tours").add("test_order_with_existing_serial", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+            ProductScreen.clickDisplayedProduct("Serial Product"),
+            ProductScreen.enterLotNumber("SN1"),
+            ProductScreen.selectedOrderlineHas("Serial Product", "1.00"),
+            inLeftSide({
+                trigger: ".info-list:contains('SN SN1')",
+            }),
+            ProductScreen.clickDisplayedProduct("Serial Product"),
+            ProductScreen.enterLastLotNumber("SN2"),
+            ProductScreen.selectedOrderlineHas("Serial Product", "2.00"),
+            inLeftSide({
+                trigger: ".info-list:contains('SN SN2')",
             }),
         ].flat(),
 });

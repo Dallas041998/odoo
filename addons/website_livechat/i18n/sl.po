@@ -94,7 +94,7 @@ msgstr "Korak skripta klepetalnega robota"
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_form
 #: model_terms:ir.ui.view,arch_db:website_livechat.website_visitor_view_kanban
 msgid "Chats"
-msgstr ""
+msgstr "Klepeti"
 
 #. module: website_livechat
 #: model:ir.model,name:website_livechat.model_res_config_settings
@@ -313,7 +313,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_livechat/models/discuss_channel.py:0
 msgid "Visitor left the conversation."
-msgstr ""
+msgstr "Obiskovalec je zapustil pogovor."
 
 #. module: website_livechat
 #: model:ir.actions.act_window,name:website_livechat.website_visitor_livechat_session_action

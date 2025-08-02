@@ -221,7 +221,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_answer__name
 msgid "Answer"
-msgstr ""
+msgstr "जवाब"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__answer_ids
@@ -358,7 +358,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__channel_type
 msgid "Channel Type"
-msgstr ""
+msgstr "चैनल टाइ"
 
 #. module: im_livechat
 #: model:ir.ui.menu,name:im_livechat.support_channels
@@ -377,6 +377,8 @@ msgid ""
 "Chat is private and unique between 2 persons. Group is private among invited"
 " persons. Channel can be freely joined (depending on its configuration)."
 msgstr ""
+"चैट दो लोगों के लिए निजी है. ग्रुप कुछ चुने हुए लोगों के लिए निजी है. चैनल "
+"में कोई भी शामिल हो सकता है (सेटिंग पर निर्भर करता है)."
 
 #. module: im_livechat
 #: model:ir.actions.act_window,name:im_livechat.chatbot_script_action
@@ -641,7 +643,7 @@ msgstr ""
 #: model:ir.model,name:im_livechat.model_discuss_channel
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_message__discuss_channel_id
 msgid "Discussion Channel"
-msgstr ""
+msgstr "डिस्कशन चैनल"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_message__display_name
@@ -894,7 +896,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__image_1920
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__image_128
 msgid "Image"
-msgstr ""
+msgstr "इमेज"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__image_1024
@@ -972,7 +974,7 @@ msgstr ""
 #: code:addons/im_livechat/static/src/core/web/channel_invitation_patch.xml:0
 #: code:addons/im_livechat/static/src/core/web/channel_member_list_patch.xml:0
 msgid "Lang"
-msgstr ""
+msgstr "लैंग"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_report_channel_view_search
@@ -1261,7 +1263,7 @@ msgstr "ऐसे मैसेज की संख्या जिनमें �
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 msgid "Odoo"
-msgstr ""
+msgstr "Odoo"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
@@ -1327,7 +1329,7 @@ msgstr ""
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Options"
-msgstr ""
+msgstr "विकल्प"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_mail_mail__parent_author_name
@@ -1360,7 +1362,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__chatbot_script_step__step_type__question_phone
 msgid "Phone"
-msgstr ""
+msgstr "फ़ोन"
 
 #. module: im_livechat
 #. odoo-python
@@ -1496,7 +1498,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__rule_ids
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_rule_view_tree
 msgid "Rules"
-msgstr ""
+msgstr "नियम"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__message_has_sms_error
@@ -1790,7 +1792,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script__title
 msgid "Title"
-msgstr ""
+msgstr "टाइटल"
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__title_color
@@ -1903,7 +1905,7 @@ msgstr "वेबसाइट मैसेज"
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_discuss_channel__website_message_ids
 msgid "Website communication history"
-msgstr ""
+msgstr "वेबसाइट कम्यूनिकेशन हिस्ट्री"
 
 #. module: im_livechat
 #: model:chatbot.script,title:im_livechat.chatbot_script_welcome_bot
