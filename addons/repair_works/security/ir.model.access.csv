@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_repair_equipment,access_repair_equipment,model_repair_equipment,,1,1,1,1
+access_repair_service_order,access_repair_service_order,model_repair_service_order,,1,1,1,1

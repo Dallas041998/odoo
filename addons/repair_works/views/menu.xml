@@ -1,0 +1,16 @@
+<odoo>
+    <menuitem id="repair_works_menu_root" name="Repair Works"/>
+    <menuitem id="repair_equipment_menu" name="Equipments" parent="repair_works_menu_root" action="repair_equipment_action"/>
+    <menuitem id="repair_service_order_menu" name="Service Orders" parent="repair_works_menu_root" action="repair_service_order_action"/>
+
+    <record id="repair_equipment_action" model="ir.actions.act_window">
+        <field name="name">Equipments</field>
+        <field name="res_model">repair.equipment</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="repair_service_order_action" model="ir.actions.act_window">
+        <field name="name">Service Orders</field>
+        <field name="res_model">repair.service_order</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
