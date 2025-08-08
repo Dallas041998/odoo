@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Repair Works Menu -->
+    <menuitem id="repair_works_menu_root" 
+        name="Repair Works"
+        sequence="60"
+        web_icon="fa-wrench"/>
+
+    <!-- Operations Menu -->
+    <menuitem id="repair_works_operations_menu"
+        name="Operations"
+        parent="repair_works_menu_root"
+        sequence="10"/>
+
+    <!-- Equipment Menu -->
+    <menuitem id="repair_works_equipment_menu"
+        name="Equipment"
+        action="action_equipment"
+        parent="repair_works_operations_menu"
+        groups="repair_group_user"
+        sequence="10"/>
+
+    <!-- Service Orders Menu -->
+    <menuitem id="repair_works_service_order_menu"
+        name="Service Orders"
+        action="action_service_order"
+        parent="repair_works_operations_menu"
+        groups="repair_group_user"
+        sequence="20"/>
+</odoo>

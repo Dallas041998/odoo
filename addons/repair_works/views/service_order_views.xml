@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Service Order Form View -->
+    <record id="view_service_order_form" model="ir.ui.view">
+        <field name="name">repair.service_order.form</field>
+        <field name="model">repair.service_order</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="equipment_id"/>
+                        <field name="status"/>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Service Order Tree View -->
+    <record id="view_service_order_tree" model="ir.ui.view">
+        <field name="name">repair.service_order.tree</field>
+        <field name="model">repair.service_order</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="equipment_id"/>
+                <field name="description"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Service Order Action -->
+    <record id="action_service_order" model="ir.actions.act_window">
+        <field name="name">Service Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">repair.service_order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first service order
+            </p>
+        </field>
+    </record>
+</odoo>
