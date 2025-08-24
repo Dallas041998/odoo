@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Customer Equipment Form View -->
+    <record id="view_customer_equipment_form" model="ir.ui.view">
+        <field name="name">customer.equipment.form</field>
+        <field name="model">customer.equipment</field>
+        <field name="arch" type="xml">
+            <form string="Customer Equipment">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="active,maintenance,repair,inactive"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_service_orders" type="object" class="oe_stat_button" icon="fa-wrench">
+                            <field name="service_count" widget="statinfo" string="Services"/>
+                        </button>
+                    </div>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Equipment Name"/>
+                        </h1>
+                        <field name="code" readonly="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="customer_id"/>
+                            <field name="product_id" domain="[('is_equipment', '=', True)]"/>
+                            <field name="equipment_type"/>
+                            <field name="condition"/>
+                        </group>
+                        <group>
+                            <field name="serial_number"/>
+                            <field name="model"/>
+                            <field name="manufacturer"/>
+                            <field name="year"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="purchase_date"/>
+                            <field name="warranty_end_date"/>
+                        </group>
+                        <group>
+                            <field name="last_service_date"/>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Technical Specifications">
+                            <field name="technical_specs" placeholder="Enter technical specifications..."/>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes" placeholder="Add any additional notes..."/>
+                        </page>
+                        <page string="Service History">
+                            <field name="service_order_ids" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="date_order"/>
+                                    <field name="service_type"/>
+                                    <field name="state"/>
+                                    <field name="total_amount"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Customer Equipment Tree View -->
+    <record id="view_customer_equipment_tree" model="ir.ui.view">
+        <field name="name">customer.equipment.tree</field>
+        <field name="model">customer.equipment</field>
+        <field name="arch" type="xml">
+            <tree string="Customer Equipment">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="serial_number"/>
+                <field name="model"/>
+                <field name="equipment_type"/>
+                <field name="condition"/>
+                <field name="state"/>
+                <field name="last_service_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Customer Equipment Search View -->
+    <record id="view_customer_equipment_search" model="ir.ui.view">
+        <field name="name">customer.equipment.search</field>
+        <field name="model">customer.equipment</field>
+        <field name="arch" type="xml">
+            <search string="Search Equipment">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="serial_number"/>
+                <field name="customer_id"/>
+                <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="Under Maintenance" name="maintenance" domain="[('state', '=', 'maintenance')]"/>
+                <filter string="Under Repair" name="repair" domain="[('state', '=', 'repair')]"/>
+                <separator/>
+                <filter string="Warranty Active" name="warranty_active" 
+                        domain="[('warranty_end_date', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'equipment_type'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Condition" name="group_condition" context="{'group_by': 'condition'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Customer Equipment Action -->
+    <record id="action_customer_equipment" model="ir.actions.act_window">
+        <field name="name">Customer Equipment</field>
+        <field name="res_model">customer.equipment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_customer_equipment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first customer equipment
+            </p>
+            <p>
+                Track and manage all customer equipment, their maintenance history, and current status.
+            </p>
+        </field>
+    </record>
+</odoo>

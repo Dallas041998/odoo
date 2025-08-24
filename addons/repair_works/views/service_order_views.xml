@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Service Order Form View -->
+    <record id="view_service_order_form" model="ir.ui.view">
+        <field name="name">service.order.form</field>
+        <field name="model">service.order</field>
+        <field name="arch" type="xml">
+            <form string="Service Order">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" states="draft" class="btn-primary"/>
+                    <button name="action_start" string="Start Work" type="object" states="confirmed" class="btn-primary"/>
+                    <button name="action_complete" string="Complete" type="object" states="in_progress" class="btn-success"/>
+                    <button name="action_create_invoice" string="Create Invoice" type="object" states="done" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object" states="draft,confirmed,in_progress"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,in_progress,done,invoiced"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoice" type="object" class="oe_stat_button" 
+                                icon="fa-file-text" attrs="{'invisible': [('invoice_id', '=', False)]}">
+                            <field name="invoice_state" widget="statinfo" string="Invoice"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="customer_id" options="{'no_create': True}"/>
+                            <field name="equipment_id" options="{'no_create': True}"
+                                   context="{'default_customer_id': customer_id}"
+                                   domain="[('customer_id', '=', customer_id)]"/>
+                            <field name="service_type"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group>
+                            <field name="date_order"/>
+                            <field name="scheduled_date"/>
+                            <field name="completion_date" attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                            <field name="technician_id"/>
+                        </group>
+                    </group>
+                    <group string="Equipment Information" attrs="{'invisible': [('equipment_id', '=', False)]}">
+                        <group>
+                            <field name="equipment_serial"/>
+                            <field name="equipment_model"/>
+                        </group>
+                        <group>
+                            <field name="equipment_manufacturer"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Problem Description">
+                            <group>
+                                <field name="problem_description" nolabel="1" 
+                                       placeholder="Describe the problem reported by the customer..."/>
+                            </group>
+                        </page>
+                        <page string="Work Details">
+                            <group>
+                                <field name="diagnosis" placeholder="Enter diagnosis..."/>
+                                <field name="work_performed" placeholder="Describe work performed..."/>
+                                <field name="recommendations" placeholder="Enter recommendations..."/>
+                            </group>
+                        </page>
+                        <page string="Parts &amp; Labor">
+                            <field name="service_line_ids">
+                                <tree editable="bottom">
+                                    <field name="product_id" domain="[('is_service_part', '=', True)]"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="subtotal" sum="Total Parts"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="currency_id" invisible="1"/>
+                                <field name="parts_amount" widget="monetary"/>
+                                <field name="labor_amount" widget="monetary"/>
+                                <div class="oe_subtotal_footer_separator oe_inline">
+                                    <label for="total_amount"/>
+                                </div>
+                                <field name="total_amount" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary"/>
+                            </group>
+                        </page>
+                        <page string="Technician Notes">
+                            <field name="technician_notes" nolabel="1" 
+                                   placeholder="Internal notes for technicians..."/>
+                        </page>
+                        <page string="Additional Info">
+                            <group>
+                                <group>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="invoice_id" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="notes" placeholder="Internal notes..."/>
+                                </group>
+                            </group>
+                            <group string="Attachments">
+                                <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                            </group>
+                            <group string="Customer Signature" attrs="{'invisible': [('customer_signature', '=', False)]}">
+                                <field name="customer_signature" widget="image" nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Service Order Tree View -->
+    <record id="view_service_order_tree" model="ir.ui.view">
+        <field name="name">service.order.tree</field>
+        <field name="model">service.order</field>
+        <field name="arch" type="xml">
+            <tree string="Service Orders" decoration-info="state=='draft'" 
+                  decoration-warning="state=='confirmed'" 
+                  decoration-success="state=='done'"
+                  decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="equipment_id"/>
+                <field name="date_order"/>
+                <field name="scheduled_date"/>
+                <field name="service_type"/>
+                <field name="priority" widget="priority"/>
+                <field name="technician_id"/>
+                <field name="total_amount"/>
+                <field name="state" widget="badge" decoration-info="state=='draft'" 
+                       decoration-warning="state in ['confirmed','in_progress']" 
+                       decoration-success="state in ['done','invoiced']"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Service Order Search View -->
+    <record id="view_service_order_search" model="ir.ui.view">
+        <field name="name">service.order.search</field>
+        <field name="model">service.order</field>
+        <field name="arch" type="xml">
+            <search string="Search Service Orders">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="equipment_id"/>
+                <field name="technician_id"/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completed" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Invoiced" name="invoiced" domain="[('state', '=', 'invoiced')]"/>
+                <separator/>
+                <filter string="High Priority" name="high_priority" domain="[('priority', 'in', ['high', 'urgent'])]"/>
+                <filter string="Today" name="today" domain="[('date_order', '>=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),
+                                                             ('date_order', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]"/>
+                <filter string="This Week" name="this_week" domain="[('date_order', '>=', (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
+                    <filter string="Equipment" name="group_equipment" context="{'group_by': 'equipment_id'}"/>
+                    <filter string="Technician" name="group_technician" context="{'group_by': 'technician_id'}"/>
+                    <filter string="Service Type" name="group_service_type" context="{'group_by': 'service_type'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Order Date" name="group_date" context="{'group_by': 'date_order:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Service Order Kanban View -->
+    <record id="view_service_order_kanban" model="ir.ui.view">
+        <field name="name">service.order.kanban</field>
+        <field name="model">service.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="equipment_id"/>
+                <field name="date_order"/>
+                <field name="priority"/>
+                <field name="state"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                                <div class="text-muted o_kanban_record_subtitle">
+                                    <field name="customer_id"/>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="priority" widget="priority"/>
+                                        <field name="equipment_id"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="technician_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Service Order Action -->
+    <record id="action_service_order" model="ir.actions.act_window">
+        <field name="name">Service Orders</field>
+        <field name="res_model">service.order</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_service_order_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first service order
+            </p>
+            <p>
+                Manage service orders for customer equipment, track work performed, and generate invoices.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu -->
+    <menuitem id="menu_shop_job_root" 
+              name="Shop &amp; Jobs" 
+              sequence="10"
+              web_icon="shop_job_management,static/description/icon.png"/>
+    
+    <!-- Service Management Menu -->
+    <menuitem id="menu_service_management" 
+              name="Service Management" 
+              parent="menu_shop_job_root" 
+              sequence="10"/>
+    
+    <menuitem id="menu_service_orders" 
+              name="Service Orders" 
+              parent="menu_service_management" 
+              action="action_service_order" 
+              sequence="10"/>
+    
+    <!-- Equipment Management Menu -->
+    <menuitem id="menu_equipment_management" 
+              name="Equipment" 
+              parent="menu_shop_job_root" 
+              sequence="20"/>
+    
+    <menuitem id="menu_customer_equipment" 
+              name="Customer Equipment" 
+              parent="menu_equipment_management" 
+              action="action_customer_equipment" 
+              sequence="10"/>
+    
+    <!-- Configuration Menu -->
+    <menuitem id="menu_shop_job_config" 
+              name="Configuration" 
+              parent="menu_shop_job_root" 
+              sequence="100"
+              groups="base.group_system"/>
+</odoo>

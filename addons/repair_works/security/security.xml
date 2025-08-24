@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Record Rules -->
+    <record id="service_order_company_rule" model="ir.rule">
+        <field name="name">Service Order Company Rule</field>
+        <field name="model_id" ref="model_service_order"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    
+    <record id="customer_equipment_company_rule" model="ir.rule">
+        <field name="name">Customer Equipment Company Rule</field>
+        <field name="model_id" ref="model_customer_equipment"/>
+        <field name="domain_force">[('customer_id.company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

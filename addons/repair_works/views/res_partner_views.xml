@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Partner Form View -->
+    <record id="view_partner_form_equipment" model="ir.ui.view">
+        <field name="name">res.partner.form.equipment</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_equipment" type="object" class="oe_stat_button" icon="fa-cogs">
+                    <field name="equipment_count" widget="statinfo" string="Equipment"/>
+                </button>
+                <button name="action_view_service_orders" type="object" class="oe_stat_button" icon="fa-wrench">
+                    <field name="service_order_count" widget="statinfo" string="Service Orders"/>
+                </button>
+            </div>
+            <page name="sales_purchases" position="after">
+                <page string="Equipment" attrs="{'invisible': [('customer_rank', '=', 0)]}">
+                    <field name="equipment_ids">
+                        <tree>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="serial_number"/>
+                            <field name="model"/>
+                            <field name="equipment_type"/>
+                            <field name="state"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Service Orders" attrs="{'invisible': [('customer_rank', '=', 0)]}">
+                    <field name="service_order_ids">
+                        <tree>
+                            <field name="name"/>
+                            <field name="date_order"/>
+                            <field name="equipment_id"/>
+                            <field name="service_type"/>
+                            <field name="state"/>
+                            <field name="total_amount"/>
+                        </tree>
+                    </field>
+                </page>
+            </page>
+        </field>
+    </record>
+</odoo>

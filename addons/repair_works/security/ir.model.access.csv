@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_repair_equipment,access_repair_equipment,model_repair_equipment,,1,1,1,1
-access_repair_service_order,access_repair_service_order,model_repair_service_order,,1,1,1,1
+access_customer_equipment_user,customer.equipment.user,model_customer_equipment,base.group_user,1,1,1,0
+access_customer_equipment_manager,customer.equipment.manager,model_customer_equipment,base.group_system,1,1,1,1
+access_service_order_user,service.order.user,model_service_order,base.group_user,1,1,1,0
+access_service_order_manager,service.order.manager,model_service_order,base.group_system,1,1,1,1
+access_service_order_line_user,service.order.line.user,model_service_order_line,base.group_user,1,1,1,1
+access_service_order_line_manager,service.order.line.manager,model_service_order_line,base.group_system,1,1,1,1
