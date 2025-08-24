@@ -2741,7 +2741,7 @@ class TestUi(TestPointOfSaleHttpCommon):
     def test_not_create_loyalty_card_max_usage_program(self):
         self.env['loyalty.program'].search([]).write({'active': False})
         self.env['res.partner'].create({'name': 'Test Partner'})
-        self.env['res.partner'].create({'name': 'Test Partner 2'})
+        self.env['res.partner'].create({'name': 'AAA Test Partner 2'})
 
         loyalty_program = self.env['loyalty.program'].create({
             'name': 'Loyalty Program',
@@ -2955,8 +2955,8 @@ class TestUi(TestPointOfSaleHttpCommon):
         partners that already have points in the loyalty program cannot claim rewards anymore."""
 
         self.env['loyalty.program'].search([]).write({'active': False})
-        test_partner = self.env['res.partner'].create({'name': 'Test Partner'})
-        self.env['res.partner'].create({'name': 'Test Partner 2'})
+        test_partner = self.env['res.partner'].create({'name': 'AAA Test Partner 3'})
+        self.env['res.partner'].create({'name': 'AAA Test Partner 2'})
 
         loyalty_program = self.env['loyalty.program'].create({
             'name': 'Loyalty Program',

@@ -22,7 +22,7 @@ class PurchaseOrder(models.Model):
     _rec_names_search = ['name', 'partner_ref']
     _order = 'priority desc, id desc'
 
-    @api.depends('order_line.price_subtotal', 'company_id')
+    @api.depends('order_line.price_subtotal', 'company_id', 'currency_id')
     def _amount_all(self):
         AccountTax = self.env['account.tax']
         for order in self:
@@ -1078,8 +1078,11 @@ class PurchaseOrder(models.Model):
             params=params
         )
         if seller:
+            price = seller.price_discounted
+            if seller.currency_id != self.currency_id:
+                price = seller.currency_id._convert(seller.price_discounted, self.currency_id)
             product_infos.update(
-                price=seller.price_discounted,
+                price=price,
                 min_qty=seller.min_qty,
             )
         # Check if the product uses some packaging.
@@ -1224,8 +1227,11 @@ class PurchaseOrder(models.Model):
                 date=pol.order_id.date_order and pol.order_id.date_order.date() or fields.Date.context_today(pol),
                 uom_id=pol.product_uom)
             if seller:
+                price = seller.price_discounted
+                if seller.currency_id != self.currency_id:
+                    price = seller.currency_id._convert(seller.price_discounted, self.currency_id)
                 # Fix the PO line's price on the seller's one.
-                pol.price_unit = seller.price_discounted
+                pol.price_unit = price
         return pol.price_unit_discounted
 
     def _create_update_date_activity(self, updated_dates):
