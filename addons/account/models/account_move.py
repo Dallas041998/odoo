@@ -38,6 +38,7 @@ from odoo.tools import (
 )
 from odoo.tools.mail import email_re, email_split, is_html_empty, generate_tracking_message_id
 from odoo.tools.misc import StackMap
+from odoo.tools.safe_eval import safe_eval
 
 
 _logger = logging.getLogger(__name__)
@@ -1144,8 +1145,8 @@ class AccountMove(models.Model):
     def _compute_payment_state(self):
         groups = self.grouped(lambda move:
             'legacy' if move.payment_state == 'invoicing_legacy' else
-            'posted_invoice' if move.state == 'posted' and move.is_invoice(True) else
             'blocked' if move.payment_state == 'blocked' else
+            'posted_invoice' if move.state == 'posted' and move.is_invoice(True) else
             'unpaid'
         )
         groups.get('unpaid', self.browse()).payment_state = 'not_paid'
@@ -1233,6 +1234,24 @@ class AccountMove(models.Model):
     def _compute_status_in_payment(self):
         for move in self:
             move.status_in_payment = move.state if move.state in ('draft', 'cancel') else move.payment_state
+
+    def _field_to_sql(self, alias: str, fname: str, query=None, flush: bool = True) -> SQL:
+        if fname == 'status_in_payment':
+            return SQL(
+                "CASE "
+                f"WHEN {alias}.state = 'draft' THEN 'draft' "
+                f"WHEN {alias}.state = 'cancel' THEN 'cancel' "
+                f"ELSE {alias}.payment_state "
+                "END"
+            )
+        elif fname == 'move_sent_values':
+            return SQL(
+                "CASE "
+                f"WHEN {alias}.is_move_sent THEN 'sent' "
+                f"ELSE 'not_sent' "
+                "END"
+            )
+        return super()._field_to_sql(alias, fname, query=query, flush=flush)
 
     @api.depends('matched_payment_ids')
     def _compute_payment_count(self):
@@ -2428,6 +2447,19 @@ class AccountMove(models.Model):
                     raise ValidationError(_("This entry contains taxes that are not compatible with your fiscal position. Check the country set in fiscal position and in your tax configuration."))
                 raise ValidationError(_("This entry contains one or more taxes that are incompatible with your fiscal country. Check company fiscal country in the settings and tax country in taxes configuration."))
 
+    @api.constrains('invoice_currency_rate')
+    def _check_invoice_currency_rate(self):
+        """Ensure the currency rate is strictly positive when invoice currency differs from company currency."""
+        for move in self:
+            if (
+                move.currency_id
+                and move.company_id
+                and move.currency_id != move.company_id.currency_id
+                and move.is_invoice(include_receipts=True)
+                and move.invoice_currency_rate <= 0
+            ):
+                raise ValidationError(_("The currency rate must be strictly positive."))
+
     # -------------------------------------------------------------------------
     # CATALOG
     # -------------------------------------------------------------------------
@@ -2549,7 +2581,11 @@ class AccountMove(models.Model):
             and (
                 not reference_date
                 or not self.invoice_date
-                or reference_date <= fields.first(payment_terms).discount_date
+                or (
+                    (existing_discount_date := fields.first(payment_terms).discount_date)
+                    and
+                    reference_date <= existing_discount_date
+                )
             ) \
             and not (payment_terms.sudo().matched_debit_ids + payment_terms.sudo().matched_credit_ids)
 
@@ -5223,13 +5259,8 @@ class AccountMove(models.Model):
             message loaded by default
         """
         self.ensure_one()
-
         report_action = self.action_send_and_print()
-        if self.env.is_admin() and not self.env.company.external_report_layout_id and not self.env.context.get('discard_logo_check'):
-            report_action = self.env['ir.actions.report']._action_configure_external_report_layout(report_action, "account.action_base_document_layout_configurator")
-            report_action['context']['default_from_invoice'] = self.move_type == 'out_invoice'
-
-        return report_action
+        return self._get_action_with_base_document_layout_configurator(report_action)
 
     def action_invoice_download_pdf(self):
         return {
@@ -5240,7 +5271,8 @@ class AccountMove(models.Model):
 
     def action_print_pdf(self):
         self.ensure_one()
-        return self.env.ref('account.account_invoices').report_action(self.id)
+        report_action = self.env.ref('account.account_invoices').report_action(self.id, config=False)
+        return self._get_action_with_base_document_layout_configurator(report_action)
 
     def preview_invoice(self):
         self.ensure_one()
@@ -5316,6 +5348,7 @@ class AccountMove(models.Model):
         self.line_ids.analytic_line_ids.with_context(skip_analytic_sync=True).unlink()
         self.mapped('line_ids').remove_move_reconcile()
         self.state = 'draft'
+        self.sending_data = False
 
         self._detach_attachments()
 
@@ -5514,14 +5547,13 @@ class AccountMove(models.Model):
                 },
             ]
 
+        domain = [
+            ('sending_data', '!=', False),
+            ('state', '=', 'posted'),
+        ]
         limit = job_count + 1
-        to_process = self.env['account.move'].search(
-            [('sending_data', '!=', False)],
-            limit=limit,
-        )
-        total_to_process = self.env['account.move'].search_count(
-            [('sending_data', '!=', False)],
-        )
+        to_process = self.env['account.move'].search(domain, limit=limit)
+        total_to_process = self.env['account.move'].search_count(domain)
 
         need_retrigger = len(to_process) > job_count
         if not to_process:
@@ -5596,6 +5628,19 @@ class AccountMove(models.Model):
 
     def is_outbound(self, include_receipts=True):
         return self.move_type in self.get_outbound_types(include_receipts)
+
+    def _get_action_with_base_document_layout_configurator(self, report_action):
+        if (
+            self.env.is_admin()
+            and not self.env.company.external_report_layout_id
+            and not self.env.context.get('discard_logo_check')
+        ):
+            report_action = self.env['ir.actions.report']._action_configure_external_report_layout(
+                report_action,
+                "account.action_base_document_layout_configurator",
+            )
+            report_action['context']['default_from_invoice'] = self.move_type == 'out_invoice'
+        return report_action
 
     def _get_installments_data(self):
         self.ensure_one()
@@ -5900,7 +5945,9 @@ class AccountMove(models.Model):
     def _get_invoice_report_filename(self, extension='pdf'):
         """ Get the filename of the generated invoice report with extension file. """
         self.ensure_one()
-        return f"{self.name.replace('/', '_')}.{extension}"
+        report_id = self.partner_id.invoice_template_pdf_report_id or self.env.ref('account.account_invoices')
+        file_name = safe_eval(report_id.print_report_name, {'object': self})
+        return f"{file_name.replace('/', '_')}.{extension}"
 
     def _get_invoice_proforma_pdf_report_filename(self):
         """ Get the filename of the generated proforma PDF invoice report. """
